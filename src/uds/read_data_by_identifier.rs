@@ -24,14 +24,14 @@ const READ_DATA_BY_IDENTIFIER_SID: u8 = 0x22;
 /// Response of all read_data_by_identifier methods
 #[derive(Debug, PartialEq)]
 pub struct ReadDataByIdentifierResponse {
-    data_records: Vec<DataRecord>,
+    pub data_records: Vec<DataRecord>,
 }
 
 /// Single response entry
 #[derive(Debug, PartialEq)]
 pub struct DataRecord {
-    data_identifier: u16,
-    data: Vec<u8>,
+    pub data_identifier: u16,
+    pub data: Vec<u8>,
 }
 
 impl UdsClient {

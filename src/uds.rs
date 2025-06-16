@@ -84,6 +84,9 @@ mod read_dtc_information;
 mod read_memory_by_address;
 mod uds_definitions;
 mod write_data_by_identifier;
+mod diagnostic_session_control;
+
+use std::time::Duration;
 
 pub use crate::uds::clear_diagnostic_information::*;
 pub use crate::uds::communication::*;
@@ -93,6 +96,7 @@ pub use crate::uds::read_dtc_information::*;
 pub use crate::uds::read_memory_by_address::*;
 pub use crate::uds::uds_definitions::*;
 pub use crate::uds::write_data_by_identifier::*;
+use diagnostic_session_control::DiagnosticSessionControlResponse;
 #[allow(unused_imports)]
 use log::{debug, error, info, trace, warn};
 use thiserror::Error;
@@ -109,6 +113,7 @@ pub enum UdsResponse {
     ReadDTCInformation(DataFormat<ReadDTCInformationResponse>),
     ClearDiagnosticInformation,
     WriteDataByIdentifier(DataFormat<WriteDataByIdentifierResponse>),
+    DiagnosticSessionControl(DataFormat<DiagnosticSessionControlResponse>),
 }
 
 /// If program was able to parse received data, the response struct will be stored in Parsed.
@@ -162,8 +167,8 @@ pub enum UdsError {
 /// Struct containing rejected sid and nrc for UdsError::Enc type
 #[derive(Debug, PartialEq)]
 pub struct NrcData {
-    rejected_sid: u8,
-    nrc: NegativeResponseCode,
+    pub rejected_sid: u8,
+    pub nrc: NegativeResponseCode,
 }
 
 impl From<UdsCommunicationError> for UdsError {
@@ -180,12 +185,12 @@ impl From<communication::Error> for UdsError {
 }
 
 /// Main struct providing all API calls.
-///
 pub struct UdsClient {
     socket: UdsSocket,
 }
 
 impl UdsClient {
+
     pub fn new(
         canifc: &str,
         src: impl Into<Id>,
@@ -193,6 +198,16 @@ impl UdsClient {
     ) -> Result<UdsClient, UdsError> {
         Ok(UdsClient {
             socket: UdsSocket::new(canifc, src, dst)?,
+        })
+    }
+
+    pub fn new_vw(
+        canifc: &str,
+        src: impl Into<Id>,
+        dst: impl Into<Id>,
+    ) -> Result<UdsClient, UdsError> {
+        Ok(UdsClient {
+            socket: UdsSocket::new_vw(canifc, src, dst)?,
         })
     }
 
@@ -207,6 +222,16 @@ impl UdsClient {
         }
         self.socket.send(&request).await?;
         let mut raw_response = self.socket.receive().await?;
+        // let mut raw_response = match tokio::time::timeout(Duration::from_millis(2500), self.socket.receive()).await {
+        //     Ok(response) => {
+        //         response?
+        //     }
+        //     Err(_) => {
+        //         // Timeout error
+        //         return Err(UdsError::CommunicationError { error: UdsCommunicationError::GeneralError });
+        //     }
+        // };
+
         while let Err(e) = parse_for_error(&raw_response) {
             match e {
                 UdsError::NRC { nrc } => {
@@ -231,13 +256,22 @@ impl UdsClient {
                         }
                         NegativeResponseCode::RequestCorrectlyReceivedResponsePending => {
                             info!("NRC RequestCorrectlyReceivedResponsePending received, waiting for next response");
-                            raw_response = self.socket.receive().await?;
+                            match tokio::time::timeout(Duration::from_millis(2500), self.socket.receive()).await {
+                                Ok(delayed_response) => {
+                                    raw_response = delayed_response?;
+                                }
+                                Err(_) => {
+                                    return Err(UdsError::NRC { nrc });
+                                }
+                            }
                             break;
                         }
                         _ => return Err(UdsError::NRC { nrc }),
                     }
                 }
-                _ => return Err(e),
+                _ => {
+                    return Err(e);
+                },
             }
         }
         Ok(raw_response)

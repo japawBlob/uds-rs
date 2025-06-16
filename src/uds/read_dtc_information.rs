@@ -375,16 +375,16 @@ fn parse_report_number_of_dtc_by_status_mask_response(raw_response: &[u8]) -> Ec
 /// Shared between 0x02, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x13, 0x15
 #[derive(Debug, PartialEq)]
 pub struct ReportDTCsResponse {
-    dtc_status_availability_mask: u8,
-    dtc_and_status_records: Vec<DTCAndStatusRecord>,
+    pub dtc_status_availability_mask: u8,
+    pub dtc_and_status_records: Vec<DTCAndStatusRecord>,
 }
 
 #[derive(Debug, PartialEq)]
-struct DTCAndStatusRecord {
+pub struct DTCAndStatusRecord {
     /// dtc has size of 24 bytes, highest byte of u32 is and should be ignored
-    dtc: u32,
+    pub dtc: u32,
     // TODO each bit in status of DTC has its meaning. It should be represented as different structure, than plain u8
-    status_of_dtc: u8,
+    pub status_of_dtc: u8,
 }
 
 /// Shared between 0x02, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x13, 0x15

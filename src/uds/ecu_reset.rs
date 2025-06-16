@@ -22,8 +22,8 @@ pub enum ResetType {
 
 #[derive(Debug, PartialEq)]
 pub struct EcuResetResponse {
-    reset_type: ResetType,
-    power_down_time: Option<u8>,
+    pub reset_type: ResetType,
+    pub power_down_time: Option<u8>,
 }
 
 impl UdsClient {

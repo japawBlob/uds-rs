@@ -7,6 +7,7 @@
 //! To provide your own backend communication just rewrite the read, write and socket creation process to use your own API, and you should be good to go.
 //!
 
+use std::time::Duration;
 pub use tokio_socketcan_isotp::{
     Error, ExtendedId, FlowControlOptions, Id, IsoTpBehaviour, IsoTpOptions, LinkLayerOptions,
     StandardId, TxFlags,
@@ -43,6 +44,7 @@ pub struct UdsSocket {
 }
 
 impl UdsSocket {
+
     pub fn new(
         ifname: &str,
         src: impl Into<Id>,
@@ -52,6 +54,33 @@ impl UdsSocket {
             isotp_socket: tokio_socketcan_isotp::IsoTpSocket::open(ifname, src, dst)?,
         })
     }
+
+    pub fn new_vw(
+        ifname: &str,
+        src: impl Into<Id>,
+        dst: impl Into<Id>,
+    ) -> Result<UdsSocket, UdsCommunicationError> {
+        let mut behav = IsoTpBehaviour::CAN_ISOTP_RX_PADDING;
+        behav.set(IsoTpBehaviour::CAN_ISOTP_TX_PADDING, true);
+
+        let tp_options =
+            IsoTpOptions::new(behav, Duration::from_secs(1), u8::MAX, 0x55, 0xAA, u8::MAX);
+
+        let mut behav = IsoTpBehaviour::CAN_ISOTP_RX_PADDING;
+        behav.set(IsoTpBehaviour::CAN_ISOTP_TX_PADDING, true);
+        let mut options = None;
+
+        match tp_options {
+            Ok(mut o) => {
+                o.set_flags(behav);
+                options = Some(o);
+            }
+            Err(_) => println!("Cannot set options!"),
+        }
+        let uds_socket = UdsSocket::new_with_opts(&ifname, src, dst, options, None, None)?;
+        return Ok(uds_socket);
+    }
+
     pub fn new_with_opts(
         ifname: &str,
         src: impl Into<Id>,
