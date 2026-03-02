@@ -43,8 +43,7 @@ impl UdsClient {
         }
         let request = compose_read_data_by_identifier_request(data_identifiers);
         let raw_response = self.send_and_receive(&request).await?;
-        let response = parse_read_data_by_identifier_response(&raw_response);
-        response
+        parse_read_data_by_identifier_response(&raw_response)
     }
     /// Method takes slice of tuples, first element stands for data identifier and second for
     /// data length. Do not like adding another Struct just for this.
@@ -59,9 +58,7 @@ impl UdsClient {
         }
         let request: Vec<u8> = compose_read_data_by_identifier_request(&data_identifiers);
         let response = self.send_and_receive(&request).await?;
-        let parsed_response =
-            parse_read_data_by_identifier_tuple_response(data_identifiers_and_lengths, &response);
-        return parsed_response;
+        parse_read_data_by_identifier_tuple_response(data_identifiers_and_lengths, &response)
     }
 
     async fn read_single_data_by_identifier(&self, data_identifier: u16) -> EcuResponseResult {
@@ -78,7 +75,7 @@ fn compose_read_data_by_identifier_request(data_identifiers: &[u16]) -> Vec<u8> 
         let lsb = i as u8;
         request.push(lsb);
     }
-    return request;
+    request
 }
 
 fn parse_read_data_by_identifier_response(raw_response: &[u8]) -> EcuResponseResult {
@@ -162,7 +159,7 @@ fn parse_read_data_by_identifier_tuple_response(
 
     let ret =
         UdsResponse::ReadDataByIdentifier(DataFormat::Parsed(read_data_by_identifier_response));
-    return Ok(ret);
+    Ok(ret)
 }
 #[cfg(test)]
 mod tests {

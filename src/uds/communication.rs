@@ -76,8 +76,8 @@ impl UdsSocket {
             }
             Err(_) => println!("Cannot set options!"),
         }
-        let uds_socket = UdsSocket::new_with_opts(&ifname, src, dst, options, None, None)?;
-        return Ok(uds_socket);
+        let uds_socket = UdsSocket::new_with_opts(ifname, src, dst, options, None, None)?;
+        Ok(uds_socket)
     }
 
     pub fn new_with_opts(

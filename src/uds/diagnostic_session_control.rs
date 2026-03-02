@@ -23,8 +23,7 @@ impl UdsClient {
     pub async fn diagnostic_session_control(&self, session_id: u8) -> EcuResponseResult {
         let request = compose_diagnostic_session_control_request(session_id);
         let raw_response = self.send_and_receive(&request).await?;
-        let response = parse_diagnostic_session_control_response(&raw_response);
-        response
+        parse_diagnostic_session_control_response(&raw_response)
     }
 }
 

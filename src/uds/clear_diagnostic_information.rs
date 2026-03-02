@@ -14,8 +14,7 @@ impl UdsClient {
     pub async fn clear_diagnostic_information(&self, group_of_dtc: u32) -> EcuResponseResult {
         let request = compose_clear_diagnostic_information_request(group_of_dtc);
         let raw_response = self.send_and_receive(&request).await?;
-        let response = parse_clear_diagnostic_information_response(&raw_response);
-        response
+        parse_clear_diagnostic_information_response(&raw_response)
     }
 }
 
