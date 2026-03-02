@@ -13,7 +13,7 @@ const WRITE_DATA_BY_IDENTIFIER_SID: u8 = 0x2E;
 
 #[derive(Debug, PartialEq)]
 pub struct WriteDataByIdentifierResponse {
-    data_identifier: u16,
+    pub data_identifier: u16,
 }
 impl UdsClient {
     pub async fn write_data_by_identifier(

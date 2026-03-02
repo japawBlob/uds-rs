@@ -14,9 +14,9 @@ const DIAGNOSTIC_SESSION_CONTROL_SID: u8 = 0x10;
 
 #[derive(Debug, PartialEq)]
 pub struct DiagnosticSessionControlResponse {
-    session: u8,
-    p2: u16,
-    p2_star: u16,
+    pub session: u8,
+    pub p2: u16,
+    pub p2_star: u16,
 }
 
 impl UdsClient {

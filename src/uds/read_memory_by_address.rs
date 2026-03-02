@@ -16,7 +16,7 @@ use crate::uds::uds_definitions::SEND_RECEIVE_SID_OFFSET;
 
 #[derive(Debug, PartialEq)]
 pub struct ReadMemoryByAddressResponse {
-    data_record: Vec<u8>,
+    pub data_record: Vec<u8>,
 }
 
 impl UdsClient {
