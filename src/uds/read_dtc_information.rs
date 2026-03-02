@@ -666,7 +666,7 @@ mod tests {
         let expected = UdsResponse::ReadDTCInformation(DataFormat::Parsed(
             ReadDTCInformationResponse::ReportDTCByStatusMask(ReportDTCsResponse {
                 dtc_status_availability_mask,
-                dtc_and_status_records: vec![],
+                dtc_and_status_records: dtc_and_status_record,
             }),
         ));
         assert_eq!(result, Ok(expected));

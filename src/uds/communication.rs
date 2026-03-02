@@ -101,9 +101,9 @@ impl UdsSocket {
     }
 
     pub async fn send(&self, payload: &[u8]) -> Result<(), UdsCommunicationError> {
-        Ok(self.isotp_socket.write_packet(payload)?.await?)
+        Ok(self.isotp_socket.write_packet(payload).await?)
     }
     pub async fn receive(&self) -> Result<Vec<u8>, UdsCommunicationError> {
-        Ok(self.isotp_socket.read_packet()?.await?)
+        Ok(self.isotp_socket.read_packet().await?)
     }
 }
