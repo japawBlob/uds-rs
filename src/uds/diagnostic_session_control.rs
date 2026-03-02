@@ -29,10 +29,7 @@ impl UdsClient {
 }
 
 fn compose_diagnostic_session_control_request(session_id: u8) -> Vec<u8> {
-    vec![
-        DIAGNOSTIC_SESSION_CONTROL_SID,
-        session_id,
-    ]
+    vec![DIAGNOSTIC_SESSION_CONTROL_SID, session_id]
 }
 
 fn parse_diagnostic_session_control_response(raw_response: &[u8]) -> EcuResponseResult {
@@ -64,11 +61,13 @@ fn parse_diagnostic_session_control_response(raw_response: &[u8]) -> EcuResponse
     let p2 = ((p2_hi as u16) << 8) + p2_lo as u16;
     let p2_star = ((p2s_hi as u16) << 8) + p2s_lo as u16;
 
-    let result = UdsResponse::DiagnosticSessionControl(DataFormat::Parsed(DiagnosticSessionControlResponse {
-        session,
-        p2,
-        p2_star,
-    }));
+    let result = UdsResponse::DiagnosticSessionControl(DataFormat::Parsed(
+        DiagnosticSessionControlResponse {
+            session,
+            p2,
+            p2_star,
+        },
+    ));
     Ok(result)
 }
 

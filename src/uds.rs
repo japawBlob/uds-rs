@@ -78,13 +78,13 @@
 mod communication;
 
 mod clear_diagnostic_information;
+mod diagnostic_session_control;
 mod ecu_reset;
 mod read_data_by_identifier;
 mod read_dtc_information;
 mod read_memory_by_address;
 mod uds_definitions;
 mod write_data_by_identifier;
-mod diagnostic_session_control;
 
 use std::time::Duration;
 
@@ -190,7 +190,6 @@ pub struct UdsClient {
 }
 
 impl UdsClient {
-
     pub fn new(
         canifc: &str,
         src: impl Into<Id>,
@@ -256,7 +255,12 @@ impl UdsClient {
                         }
                         NegativeResponseCode::RequestCorrectlyReceivedResponsePending => {
                             info!("NRC RequestCorrectlyReceivedResponsePending received, waiting for next response");
-                            match tokio::time::timeout(Duration::from_millis(2500), self.socket.receive()).await {
+                            match tokio::time::timeout(
+                                Duration::from_millis(2500),
+                                self.socket.receive(),
+                            )
+                            .await
+                            {
                                 Ok(delayed_response) => {
                                     raw_response = delayed_response?;
                                 }
@@ -271,7 +275,7 @@ impl UdsClient {
                 }
                 _ => {
                     return Err(e);
-                },
+                }
             }
         }
         Ok(raw_response)

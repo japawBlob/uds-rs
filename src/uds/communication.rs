@@ -44,7 +44,6 @@ pub struct UdsSocket {
 }
 
 impl UdsSocket {
-
     pub fn new(
         ifname: &str,
         src: impl Into<Id>,
