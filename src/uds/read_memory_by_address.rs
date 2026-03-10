@@ -16,7 +16,7 @@ use crate::uds::uds_definitions::SEND_RECEIVE_SID_OFFSET;
 
 #[derive(Debug, PartialEq)]
 pub struct ReadMemoryByAddressResponse {
-    data_record: Vec<u8>,
+    pub data_record: Vec<u8>,
 }
 
 impl UdsClient {
@@ -41,8 +41,7 @@ impl UdsClient {
             memory_size,
         );
         let response = self.send_and_receive(&request).await?;
-        let parsed_response = parse_response(&response);
-        return parsed_response;
+        parse_response(&response)
     }
     /// Simplified method, where address_and_memory_length_format_identifier will be assumed from
     /// provided arguments if not specified.
@@ -81,12 +80,12 @@ fn convert_from_simple_to_normal(
 
     let mut i = memory_address;
     while i > 0 {
-        i = i >> 8;
+        i >>= 8;
         address_encode_bytes += 1;
     }
     let mut i = memory_size;
     while i > 0 {
-        i = i >> 8;
+        i >>= 8;
         size_encode_bytes += 1;
     }
 

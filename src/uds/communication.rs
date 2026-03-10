@@ -44,7 +44,6 @@ pub struct UdsSocket {
 }
 
 impl UdsSocket {
-
     pub fn new(
         ifname: &str,
         src: impl Into<Id>,
@@ -77,8 +76,8 @@ impl UdsSocket {
             }
             Err(_) => println!("Cannot set options!"),
         }
-        let uds_socket = UdsSocket::new_with_opts(&ifname, src, dst, options, None, None)?;
-        return Ok(uds_socket);
+        let uds_socket = UdsSocket::new_with_opts(ifname, src, dst, options, None, None)?;
+        Ok(uds_socket)
     }
 
     pub fn new_with_opts(
@@ -102,9 +101,9 @@ impl UdsSocket {
     }
 
     pub async fn send(&self, payload: &[u8]) -> Result<(), UdsCommunicationError> {
-        Ok(self.isotp_socket.write_packet(payload)?.await?)
+        Ok(self.isotp_socket.write_packet(payload).await?)
     }
     pub async fn receive(&self) -> Result<Vec<u8>, UdsCommunicationError> {
-        Ok(self.isotp_socket.read_packet()?.await?)
+        Ok(self.isotp_socket.read_packet().await?)
     }
 }

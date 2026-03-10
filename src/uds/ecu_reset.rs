@@ -30,8 +30,7 @@ impl UdsClient {
     pub async fn ecu_reset(&self, reset_type: ResetType) -> EcuResponseResult {
         let request = compose_ecu_reset_request(reset_type);
         let raw_response = self.send_and_receive(&request).await?;
-        let response = parse_ecu_reset_response(&raw_response);
-        response
+        parse_ecu_reset_response(&raw_response)
     }
 }
 

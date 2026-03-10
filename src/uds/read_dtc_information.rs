@@ -83,11 +83,11 @@ enum SubFunction {
 #[repr(u8)]
 #[allow(non_camel_case_types)]
 enum DTCFormat {
-    SAE_J2012_DA_DTCFormat_00 = 0x00,
-    ISO_14229_1_DTCFormat = 0x01,
-    SAE_J1939_73_DTCFormat = 0x02,
-    ISO_11992_4_DTCFormat = 0x03,
-    SAE_J2012_DA_DTCFormat_04 = 0x04,
+    SAE_J2012_DA_0 = 0x00,
+    ISO_14229_1 = 0x01,
+    SAE_J1939_73 = 0x02,
+    ISO_11992_4 = 0x03,
+    SAE_J2012_DA_4 = 0x04,
 }
 
 impl UdsClient {
@@ -101,8 +101,7 @@ impl UdsClient {
             dtc_status_mask,
         );
         let raw_response = self.send_and_receive(&request).await?;
-        let response = parse_report_number_of_dtc_by_status_mask_response(&raw_response);
-        response
+        parse_report_number_of_dtc_by_status_mask_response(&raw_response)
     }
 
     /// 0x02
@@ -112,8 +111,7 @@ impl UdsClient {
             dtc_status_mask,
         );
         let raw_response = self.send_and_receive(&request).await?;
-        let response = parse_report_dtcs(&raw_response);
-        response
+        parse_report_dtcs(&raw_response)
     }
 
     // /// 0x03
@@ -137,8 +135,7 @@ impl UdsClient {
             dtc_snapshot_record_number,
         );
         let raw_response = self.send_and_receive(&request).await?;
-        let response = parse_report_dtc_snapshot_record_by_dtc_number_response(&raw_response);
-        response
+        parse_report_dtc_snapshot_record_by_dtc_number_response(&raw_response)
     }
 
     // /// 0x05
@@ -159,8 +156,7 @@ impl UdsClient {
             dtc_ext_data_record_number,
         );
         let raw_response = self.send_and_receive(&request).await?;
-        let response = parse_report_dtc_ext_data_by_dtc_number_response(&raw_response);
-        response
+        parse_report_dtc_ext_data_by_dtc_number_response(&raw_response)
     }
 
     // /// 0x07
@@ -209,8 +205,7 @@ impl UdsClient {
     pub async fn report_most_recent_confirmed_dtc(&self) -> EcuResponseResult {
         let request = compose_request_short(SubFunction::ReportMostRecentConfirmedDTC);
         let raw_response = self.send_and_receive(&request).await?;
-        let response = parse_report_dtcs(&raw_response);
-        response
+        parse_report_dtcs(&raw_response)
     }
 
     // /// 0x0F
@@ -581,7 +576,7 @@ mod tests {
         let sid = READ_DTC_INFORMATION_SID + SEND_RECEIVE_SID_OFFSET;
         let report_type = SubFunction::ReportNumberOfDTCbyStatusMask;
         let dtc_status_availability_mask: u8 = 0x18;
-        let dtc_format = DTCFormat::ISO_14229_1_DTCFormat;
+        let dtc_format = DTCFormat::ISO_14229_1;
         let dtc_count: u16 = 0x100f;
         let raw_response: Vec<u8> = vec![
             sid,
@@ -671,7 +666,7 @@ mod tests {
         let expected = UdsResponse::ReadDTCInformation(DataFormat::Parsed(
             ReadDTCInformationResponse::ReportDTCByStatusMask(ReportDTCsResponse {
                 dtc_status_availability_mask,
-                dtc_and_status_records: vec![],
+                dtc_and_status_records: dtc_and_status_record,
             }),
         ));
         assert_eq!(result, Ok(expected));

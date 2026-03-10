@@ -13,7 +13,7 @@ const WRITE_DATA_BY_IDENTIFIER_SID: u8 = 0x2E;
 
 #[derive(Debug, PartialEq)]
 pub struct WriteDataByIdentifierResponse {
-    data_identifier: u16,
+    pub data_identifier: u16,
 }
 impl UdsClient {
     pub async fn write_data_by_identifier(
@@ -23,8 +23,7 @@ impl UdsClient {
     ) -> EcuResponseResult {
         let request = compose_write_data_by_identifier_request(data_identifier, data_record);
         let raw_response = self.send_and_receive(&request).await?;
-        let response = parse_write_data_by_identifier_response(&raw_response);
-        response
+        parse_write_data_by_identifier_response(&raw_response)
     }
 }
 

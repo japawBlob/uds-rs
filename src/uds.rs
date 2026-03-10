@@ -28,11 +28,12 @@
 //!
 //! ```rust
 //! use uds_rs::{UdsClient, UdsError};
+//! use embedded_can::{Id, StandardId};
 //!
 //! #[tokio::main(flavor = "current_thread")]
 //! async fn main() -> Result<(), UdsError> {
 //!     // Create client
-//!     let c = UdsClient::new("can0", 0x774, 0x70A)?;
+//!     let c = UdsClient::new("slcan0", Id::Standard(unsafe { StandardId::new_unchecked(0x774) }), Id::Standard(unsafe { StandardId::new_unchecked(0x70A) }))?;
 //!
 //!     // read ecu VIN
 //!     let read_data_result = c.read_data_by_identifier(&[0xf18a]).await;
@@ -78,17 +79,16 @@
 mod communication;
 
 mod clear_diagnostic_information;
+mod diagnostic_session_control;
 mod ecu_reset;
 mod read_data_by_identifier;
 mod read_dtc_information;
 mod read_memory_by_address;
 mod uds_definitions;
 mod write_data_by_identifier;
-mod diagnostic_session_control;
 
 use std::time::Duration;
 
-pub use crate::uds::clear_diagnostic_information::*;
 pub use crate::uds::communication::*;
 pub use crate::uds::ecu_reset::*;
 pub use crate::uds::read_data_by_identifier::*;
@@ -190,7 +190,6 @@ pub struct UdsClient {
 }
 
 impl UdsClient {
-
     pub fn new(
         canifc: &str,
         src: impl Into<Id>,
@@ -217,10 +216,10 @@ impl UdsClient {
 
     async fn send_and_receive(&self, request: &[u8]) -> Result<Vec<u8>, UdsError> {
         let mut retry_counter = 0;
-        if request.len() == 0 {
+        if request.is_empty() {
             return Err(UdsError::RequestEmpty);
         }
-        self.socket.send(&request).await?;
+        self.socket.send(request).await?;
         let mut raw_response = self.socket.receive().await?;
         // let mut raw_response = match tokio::time::timeout(Duration::from_millis(2500), self.socket.receive()).await {
         //     Ok(response) => {
@@ -245,18 +244,23 @@ impl UdsClient {
                     match nrc.nrc {
                         NegativeResponseCode::BusyRepeatRequest => {
                             // Maybe sleep a little?
-                            retry_counter = retry_counter - 1;
+                            retry_counter -= 1;
                             if retry_counter == 0 {
                                 warn!("Service failed after multiple repeats");
                                 return Err(UdsError::NRC { nrc });
                             }
                             info!("Received NRC BusyRepeatRequest, repeating");
-                            self.socket.send(&request).await?;
+                            self.socket.send(request).await?;
                             raw_response = self.socket.receive().await?;
                         }
                         NegativeResponseCode::RequestCorrectlyReceivedResponsePending => {
                             info!("NRC RequestCorrectlyReceivedResponsePending received, waiting for next response");
-                            match tokio::time::timeout(Duration::from_millis(2500), self.socket.receive()).await {
+                            match tokio::time::timeout(
+                                Duration::from_millis(2500),
+                                self.socket.receive(),
+                            )
+                            .await
+                            {
                                 Ok(delayed_response) => {
                                     raw_response = delayed_response?;
                                 }
@@ -271,7 +275,7 @@ impl UdsClient {
                 }
                 _ => {
                     return Err(e);
-                },
+                }
             }
         }
         Ok(raw_response)
