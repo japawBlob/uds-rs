@@ -1,10 +1,14 @@
 # Unified Diagnostics Services (UDS) client over CAN bus
 
 [![Maintenance: actively-developed](https://img.shields.io/badge/maintenance-actively--developed-brightgreen.svg)](https://github.com/rust-lang/cargo/issues/4121)
+[![VERSION](https://img.shields.io/crates/v/uds-rs.svg)](https://crates.io/crates/uds-rs)
 [![Docs.rs](https://docs.rs/uds-rs/badge.svg)](https://docs.rs/uds-rs/)
 [![CI Status](https://github.com/japawBlob/uds-rs/workflows/CI/badge.svg)](https://github.com/japawBlob/uds-rs/actions)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 
+<!-- The README below is obtained from lib.rs; please update this with: cargo-rdme -->
+<!-- DO NOT EDIT TEXT BELOW THIS LINE -->
 <!-- cargo-rdme start -->
 
 provides asynchronous UDS communication via socketcan.
@@ -82,6 +86,7 @@ For the correct behaviour, you need to have Linux kernel with applied patch:
 <https://lore.kernel.org/linux-can/20230818114345.142983-1-lukas.magel@posteo.net/#r>
 
 <!-- cargo-rdme end -->
+<!-- FROM HERE ON YOU CAN EDIT THE TEXT -->
 
 ## License
 This project is licensed under the MIT License - see the LICENSE file for details.
