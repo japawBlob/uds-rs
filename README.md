@@ -1,4 +1,6 @@
-# uds-rs
+# Unified Diagnostics Services (UDS) client over CAN bus
+
+<!-- cargo-rdme start -->
 
 provides asynchronous UDS communication via socketcan.
 
@@ -64,10 +66,10 @@ for reads.
 Without this functionality the services like ReadDataByPeriodicIdentifier cannot be implemented.
 
 ### Services implementation
-each service consists of three steps
+each service consists of three steps  
 __compose function__ - serializing service method arguments and other needed
-data to Vec\<u8\>
-__send and receive__ - passing composed vector as slice to the communication backend and returning raw response
+data to Vec\<u8\>  
+__send and receive__ - passing composed vector as slice to the communication backend and returning raw response  
 __parse function__ - parsing received raw response &\[u8\] and serializing it into UdsMessage
 
 ## Notes
@@ -76,3 +78,5 @@ For the correct behaviour, you need to have Linux kernel with applied patch:
 
 ## License
 This project is licensed under the MIT License - see the LICENSE file for details.
+
+<!-- cargo-rdme end -->
