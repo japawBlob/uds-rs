@@ -17,6 +17,8 @@ jobs:
         run: cargo build --verbose
       - name: Run tests
         run: cargo test --verbose
+      - name: Run coverage
+        uses: taiki-e/install-action@cargo-llvm-cov
       - name: Check documentation
         run: cargo doc --no-deps --all-features --verbose
       - name: Check README is up to date
