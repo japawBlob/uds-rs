@@ -18,14 +18,14 @@
 //! sudo ip l set dev can0 up type can bitrate 500000
 //! ```
 //!
-//! ```rust
+//! ```no_run
 //! use uds_rs::{UdsClient, UdsError};
 //! use embedded_can::{Id, StandardId};
 //!
 //! #[tokio::main(flavor = "current_thread")]
 //! async fn main() -> Result<(), UdsError> {
 //!     // Create client
-//!     let c = UdsClient::new("slcan0", Id::Standard(unsafe { StandardId::new_unchecked(0x774) }), Id::Standard(unsafe { StandardId::new_unchecked(0x70A) }))?;
+//!     let c = UdsClient::new("can0", Id::Standard(unsafe { StandardId::new_unchecked(0x774) }), Id::Standard(unsafe { StandardId::new_unchecked(0x70A) }))?;
 //!
 //!     // read ecu VIN
 //!     let read_data_result = c.read_data_by_identifier(&[0xf18a]).await;
@@ -71,9 +71,6 @@
 //! # Notes
 //! For the correct behaviour, you need to have Linux kernel with applied patch:
 //! <https://lore.kernel.org/linux-can/20230818114345.142983-1-lukas.magel@posteo.net/#r>
-//!
-//! # License
-//! This project is licensed under the MIT License - see the LICENSE file for details.
 pub mod uds;
 
 pub use uds::*;
