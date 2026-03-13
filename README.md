@@ -1,11 +1,8 @@
-# Uds.rs
-provides asynchronous UDS communication via socketcan
+# uds-rs
 
-For the correct behaviour, you need to have Linux kernel with applied patch:
-https://lore.kernel.org/linux-can/20230818114345.142983-1-lukas.magel@posteo.net/#r
+provides asynchronous UDS communication via socketcan.
 
-
-## Hierarchy
+### Hierarchy
 
 module __uds__ - top module containing UdsClient trough which all interaction is provided for the user
 services used by UdsClient are stored in separate modules - see for example read_data_by_identifier.rs,
@@ -16,22 +13,21 @@ and receive functionality for UdsClient.
 
 All communication was designed to be used primarily with ISO 14229-1:2013 definition of UDS.
 
-# Example:
+## Example
 
 For correct behaviour the can interface needs to be setup correctly using following command:
 ```bash
 sudo ip l set dev can0 up type can bitrate 500000
 ```
 
-Example usage:
-
 ```rust
 use uds_rs::{UdsClient, UdsError};
+use embedded_can::{Id, StandardId};
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<(), UdsError> {
     // Create client
-    let c = UdsClient::new("can0", 0x774, 0x70A)?;
+    let c = UdsClient::new("slcan0", Id::Standard(unsafe { StandardId::new_unchecked(0x774) }), Id::Standard(unsafe { StandardId::new_unchecked(0x70A) }))?;
 
     // read ecu VIN
     let read_data_result = c.read_data_by_identifier(&[0xf18a]).await;
@@ -59,22 +55,24 @@ async fn main() -> Result<(), UdsError> {
     Ok(())
 }
 ```
-# Notes for development
-## Communication architecture
+## Notes for development
+### Communication architecture
 Current communication architecture is strictly bounded request-response together. It would be
-much better to have these two interactions separated. One producer for writes and one consumer
-for reads. 
+much better to have these two interactions separated into queues and adding one producer for writes and one consumer
+for reads.
 
-This flaw is the most noticeable during NRC(0x78) - RequestCorrectlyReceivedResponsePending,
-when the positive response by the server is ignored.
+Without this functionality the services like ReadDataByPeriodicIdentifier cannot be implemented.
 
-Also without this implemented, it is impossible to add asynchronous services like ReadDataByPeriodicIdentifier.
-
-## Services implementation
-each service consists of three steps  
+### Services implementation
+each service consists of three steps
 __compose function__ - serializing service method arguments and other needed
-data to Vec\<u8\>  
-__send and receive__ - passing composed vector to communication backend and returning response  
+data to Vec\<u8\>
+__send and receive__ - passing composed vector as slice to the communication backend and returning raw response
 __parse function__ - parsing received raw response &\[u8\] and serializing it into UdsMessage
 
+## Notes
+For the correct behaviour, you need to have Linux kernel with applied patch:
+<https://lore.kernel.org/linux-can/20230818114345.142983-1-lukas.magel@posteo.net/#r>
 
+## License
+This project is licensed under the MIT License - see the LICENSE file for details.
