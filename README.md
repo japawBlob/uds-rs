@@ -1,4 +1,11 @@
-# uds-rs
+# Unified Diagnostics Services (UDS) client over CAN bus
+
+[![Maintenance: actively-developed](https://img.shields.io/badge/maintenance-actively--developed-brightgreen.svg)](https://github.com/rust-lang/cargo/issues/4121)
+[![Docs.rs](https://docs.rs/uds-rs/badge.svg)](https://docs.rs/uds-rs/)
+[![CI Status](https://github.com/japawBlob/uds-rs/workflows/CI/badge.svg)](https://github.com/japawBlob/uds-rs/actions)
+
+
+<!-- cargo-rdme start -->
 
 provides asynchronous UDS communication via socketcan.
 
@@ -27,7 +34,7 @@ use embedded_can::{Id, StandardId};
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<(), UdsError> {
     // Create client
-    let c = UdsClient::new("slcan0", Id::Standard(unsafe { StandardId::new_unchecked(0x774) }), Id::Standard(unsafe { StandardId::new_unchecked(0x70A) }))?;
+    let c = UdsClient::new("can0", Id::Standard(unsafe { StandardId::new_unchecked(0x774) }), Id::Standard(unsafe { StandardId::new_unchecked(0x70A) }))?;
 
     // read ecu VIN
     let read_data_result = c.read_data_by_identifier(&[0xf18a]).await;
@@ -64,15 +71,17 @@ for reads.
 Without this functionality the services like ReadDataByPeriodicIdentifier cannot be implemented.
 
 ### Services implementation
-each service consists of three steps
+each service consists of three steps  
 __compose function__ - serializing service method arguments and other needed
-data to Vec\<u8\>
-__send and receive__ - passing composed vector as slice to the communication backend and returning raw response
+data to Vec\<u8\>  
+__send and receive__ - passing composed vector as slice to the communication backend and returning raw response  
 __parse function__ - parsing received raw response &\[u8\] and serializing it into UdsMessage
 
 ## Notes
 For the correct behaviour, you need to have Linux kernel with applied patch:
 <https://lore.kernel.org/linux-can/20230818114345.142983-1-lukas.magel@posteo.net/#r>
+
+<!-- cargo-rdme end -->
 
 ## License
 This project is licensed under the MIT License - see the LICENSE file for details.
