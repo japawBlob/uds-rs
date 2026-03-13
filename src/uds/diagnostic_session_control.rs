@@ -69,36 +69,3 @@ fn parse_diagnostic_session_control_response(raw_response: &[u8]) -> EcuResponse
     ));
     Ok(result)
 }
-
-/*
-fn parse_ecu_reset_response(raw_response: &[u8]) -> EcuResponseResult {
-    let mut response_iter = raw_response.iter();
-    let sid = *response_iter.next().ok_or(UdsError::ResponseEmpty)?;
-    if sid != ECU_RESET_SID + SEND_RECEIVE_SID_OFFSET {
-        return Err(UdsError::SidMismatch {
-            expected: ECU_RESET_SID + SEND_RECEIVE_SID_OFFSET,
-            received: sid,
-            raw_message: raw_response.to_vec(),
-        });
-    }
-    let reset_type_byte = *response_iter.next().ok_or(UdsError::InvalidLength {
-        raw_message: raw_response.to_vec(),
-    })?;
-    let reset_type: ResetType = ResetType::try_from_primitive(reset_type_byte).map_err(|_| {
-        UdsError::ResponseIncorrect {
-            raw_message: raw_response.to_vec(),
-        }
-    })?;
-    let mut power_down_time = None;
-    if reset_type == ResetType::EnableRapidPowerShutDown {
-        power_down_time = Some(*response_iter.next().ok_or(UdsError::InvalidLength {
-            raw_message: raw_response.to_vec(),
-        })?);
-    }
-    let response = UdsResponse::EcuReset(DataFormat::Parsed(EcuResetResponse {
-        reset_type,
-        power_down_time,
-    }));
-    Ok(response)
-}
-*/

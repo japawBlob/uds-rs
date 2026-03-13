@@ -221,15 +221,6 @@ impl UdsClient {
         }
         self.socket.send(request).await?;
         let mut raw_response = self.socket.receive().await?;
-        // let mut raw_response = match tokio::time::timeout(Duration::from_millis(2500), self.socket.receive()).await {
-        //     Ok(response) => {
-        //         response?
-        //     }
-        //     Err(_) => {
-        //         // Timeout error
-        //         return Err(UdsError::CommunicationError { error: UdsCommunicationError::GeneralError });
-        //     }
-        // };
 
         while let Err(e) = parse_for_error(&raw_response) {
             match e {
