@@ -1,24 +1,27 @@
 [package]
 name = "uds-rs"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
-authors = ["Jakub Jíra <jakub.jira@protonmail.com>"]
+authors = [
+    "Jakub Jíra <jakub.jira@protonmail.com>",
+    "Willem Roovers <willemroovers@protonmail.com>",
+]
 license-file = "LICENCE"
-description = "A asynchronous library implementing UDS protocol used for automotive diagnostic, standardized by ISO 14229-1:2013."
+description = "A asynchronous library implementing UDS protocol over CAN used for automotive diagnostic, standardized by ISO 14229-1:2013."
 homepage = "https://github.com/japawBlob/uds-rs"
 repository = "https://github.com/japawBlob/uds-rs"
 readme = "README.md"
-keywords = ["async", "uds", "iso-14229-1"]
+keywords = ["async", "uds", "iso-14229-1", "can"]
 categories = ["network-programming", "os::linux-apis", "asynchronous"]
 
 [badges]
-maintenance = { status = "actively-developed"}
+maintenance = { status = "actively-developed" }
 
 [dev-dependencies]
 env_logger = "0.11.9"
 
 [dependencies]
-tokio = { version = "1", features = ["full"] }
+tokio = { version = "1.50", features = ["full"] }
 futures-util = "0.3.25"
 futures-timer = "3.0.2"
 futures = "0.3"
@@ -32,4 +35,3 @@ mio = { version = "1.1", features = ["os-ext"] }
 num_enum = "0.7.2"
 log = "0.4.20"
 tokio-socketcan-isotp = "0.2.0"
-
