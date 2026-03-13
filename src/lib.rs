@@ -71,9 +71,6 @@
 //! # Notes
 //! For the correct behaviour, you need to have Linux kernel with applied patch:
 //! <https://lore.kernel.org/linux-can/20230818114345.142983-1-lukas.magel@posteo.net/#r>
-//!
-//! # License
-//! This project is licensed under the MIT License - see the LICENSE file for details.
 pub mod uds;
 
 pub use uds::*;
