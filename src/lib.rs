@@ -18,14 +18,14 @@
 //! sudo ip l set dev can0 up type can bitrate 500000
 //! ```
 //!
-//! ```rust
+//! ```no_run
 //! use uds_rs::{UdsClient, UdsError};
 //! use embedded_can::{Id, StandardId};
 //!
 //! #[tokio::main(flavor = "current_thread")]
 //! async fn main() -> Result<(), UdsError> {
 //!     // Create client
-//!     let c = UdsClient::new("slcan0", Id::Standard(unsafe { StandardId::new_unchecked(0x774) }), Id::Standard(unsafe { StandardId::new_unchecked(0x70A) }))?;
+//!     let c = UdsClient::new("can0", Id::Standard(unsafe { StandardId::new_unchecked(0x774) }), Id::Standard(unsafe { StandardId::new_unchecked(0x70A) }))?;
 //!
 //!     // read ecu VIN
 //!     let read_data_result = c.read_data_by_identifier(&[0xf18a]).await;
