@@ -1,22 +1,21 @@
 //! provides asynchronous UDS communication via socketcan.
 //!
-//! ## Hierarchy
-//!
-//! module __uds__ - top module containing UdsClient trough which all interaction is provided for the user
-//! services used by UdsClient are stored in separate modules - see for example read_data_by_identifier.rs,
-//! where structure of service module is described
-//!
-//! module __communication__ - basic communication framework. Purpose of this module is to provide send
-//! and receive functionality for UdsClient.
-//!
 //! All communication was designed to be used primarily with ISO 14229-1:2013 definition of UDS.
 //!
 //! # Example
 //!
-//! For correct behaviour the can interface needs to be setup correctly using following command:
+//! For correct behaviour make sure to set-up a CAN interface first.
+//! You an you a virtual CAN interface for testing purposes, for example with the following command.
+//! To make setting-up a CAN interface easier install [can-utils-rs](https://crates.io/crates/can-utils-rs) package
 //! ```bash
-//! sudo ip l set dev can0 up type can bitrate 500000
+//! cargo install can-utils-rs
 //! ```
+//! Then use the following command:
+//! ```bash
+//! can-utils-rs
+//! ```
+//! Then select the interface type you want to use. Then make sure to match the name of the interface (can0 in the example)
+//! with the one you have set-up.
 //!
 //! ```
 //! // To run the example make sure to set-up a CAN interface first!
@@ -76,6 +75,15 @@
 //! for reads.
 //!
 //! Without this functionality the services like ReadDataByPeriodicIdentifier cannot be implemented.
+//!
+//! ## Hierarchy
+//!
+//! module __uds__ - top module containing UdsClient trough which all interaction is provided for the user
+//! services used by UdsClient are stored in separate modules - see for example read_data_by_identifier.rs,
+//! where structure of service module is described
+//!
+//! module __communication__ - basic communication framework. Purpose of this module is to provide send
+//! and receive functionality for UdsClient.
 //!
 //! ## Services implementation
 //! each service consists of three steps  
