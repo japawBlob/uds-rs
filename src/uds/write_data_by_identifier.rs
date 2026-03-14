@@ -5,9 +5,9 @@
 //! [UdsClient::write_data_by_identifier]
 //!
 
+use crate::DataFormat;
 use crate::uds::uds_definitions::SEND_RECEIVE_SID_OFFSET;
 use crate::uds::{EcuResponseResult, UdsClient, UdsError, UdsResponse};
-use crate::DataFormat;
 
 const WRITE_DATA_BY_IDENTIFIER_SID: u8 = 0x2E;
 
