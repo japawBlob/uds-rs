@@ -1,6 +1,6 @@
 [package]
 name = "uds-rs"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2024"
 authors = [
     "Jakub Jíra <jakub.jira@protonmail.com>",
