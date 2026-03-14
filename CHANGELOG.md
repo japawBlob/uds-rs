@@ -5,8 +5,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Rust Semantic Versioning](https://doc.rust-lang.org/cargo/reference/semver.html).
 
 ## [Unreleased]
+
+## [0.2.1] - 2026-03-14
 ### Changed
--  Generate readme from docs in code
+- Generate readme from docs in code
+- Update dependencies
 
 ## [0.2.0] - 2026-03-13
 ### Added
