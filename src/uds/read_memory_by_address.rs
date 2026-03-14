@@ -91,7 +91,9 @@ fn convert_from_simple_to_normal(
 
     if let Some(mut provided_address_len) = memory_address_len {
         if provided_address_len > 0x8 {
-            warn!("address_len needs to be lower or equal to 0xf, using 0xf instead of provided value");
+            warn!(
+                "address_len needs to be lower or equal to 0xf, using 0xf instead of provided value"
+            );
             provided_address_len = 0x8;
         }
 

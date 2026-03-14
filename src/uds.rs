@@ -62,13 +62,17 @@ pub enum UdsError {
         received: u8,
         raw_message: Vec<u8>,
     },
-    #[error("Sent and received data identifier don't match. Expected: {expected:x}, Received: {received:x}")]
+    #[error(
+        "Sent and received data identifier don't match. Expected: {expected:x}, Received: {received:x}"
+    )]
     DidMismatch {
         expected: u16,
         received: u16,
         raw_message: Vec<u8>,
     },
-    #[error("Received message doesn't correspond to expected length. Received message: {raw_message:x?}")]
+    #[error(
+        "Received message doesn't correspond to expected length. Received message: {raw_message:x?}"
+    )]
     InvalidLength { raw_message: Vec<u8> },
     #[error("Negative response code was received: {nrc:?}")]
     NRC { nrc: NrcData },
@@ -171,7 +175,9 @@ impl UdsClient {
                             raw_response = self.socket.receive().await?;
                         }
                         NegativeResponseCode::RequestCorrectlyReceivedResponsePending => {
-                            info!("NRC RequestCorrectlyReceivedResponsePending received, waiting for next response");
+                            info!(
+                                "NRC RequestCorrectlyReceivedResponsePending received, waiting for next response"
+                            );
                             match tokio::time::timeout(
                                 Duration::from_millis(2500),
                                 self.socket.receive(),
@@ -221,7 +227,7 @@ fn parse_for_error(raw_response: &[u8]) -> Result<(), UdsError> {
 #[cfg(test)]
 mod tests {
     use crate::uds::uds_definitions::NEGATIVE_RESPONSE_SID;
-    use crate::uds::{parse_for_error, UdsError};
+    use crate::uds::{UdsError, parse_for_error};
 
     #[test]
     fn test_parse_for_error_wrong_nrc() {
