@@ -17,7 +17,7 @@
 //! Then select the interface type you want to use. Then make sure to match the name of the interface (can0 in the example)
 //! with the one you have set-up.
 //!
-//! ```
+//! ```no_run
 //! // To run the example make sure to set-up a CAN interface first!
 //!
 //! use embedded_can::StandardId;
