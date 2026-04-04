@@ -8,6 +8,7 @@
 //!
 
 use std::time::Duration;
+
 pub use tokio_socketcan_isotp::{
     Error, ExtendedId, FlowControlOptions, Id, IsoTpBehaviour, IsoTpOptions, LinkLayerOptions,
     StandardId, TxFlags,
@@ -43,61 +44,65 @@ pub struct UdsSocket {
     isotp_socket: tokio_socketcan_isotp::IsoTpSocket,
 }
 
+#[derive(Default)]
+pub struct UdsSocketOptions {
+    pub isotp_options: Option<IsoTpOptions>,
+    pub rx_flow_control_options: Option<FlowControlOptions>,
+    pub link_layer_options: Option<LinkLayerOptions>,
+}
+
+impl UdsSocketOptions {
+    pub fn vw() -> Result<Self, UdsCommunicationError> {
+        let mut initial_flags = IsoTpBehaviour::CAN_ISOTP_RX_PADDING;
+        initial_flags.set(IsoTpBehaviour::CAN_ISOTP_TX_PADDING, true);
+
+        let mut isotp_options = IsoTpOptions::new(
+            initial_flags,
+            Duration::from_secs(1),
+            u8::MAX,
+            0x55,
+            0xAA,
+            u8::MAX,
+        )
+        .map_err(|_| UdsCommunicationError::SocketCreationError)?;
+
+        let mut runtime_flags = IsoTpBehaviour::CAN_ISOTP_RX_PADDING;
+        runtime_flags.set(IsoTpBehaviour::CAN_ISOTP_TX_PADDING, true);
+        isotp_options.set_flags(runtime_flags);
+
+        Ok(Self {
+            isotp_options: Some(isotp_options),
+            rx_flow_control_options: None,
+            link_layer_options: None,
+        })
+    }
+}
+
 impl UdsSocket {
     pub fn new(
         ifname: &str,
         src: impl Into<Id>,
         dst: impl Into<Id>,
+        options: Option<UdsSocketOptions>,
     ) -> Result<UdsSocket, UdsCommunicationError> {
-        Ok(UdsSocket {
-            isotp_socket: tokio_socketcan_isotp::IsoTpSocket::open(ifname, src, dst)?,
-        })
-    }
+        let src = src.into();
+        let dst = dst.into();
 
-    pub fn new_vw(
-        ifname: &str,
-        src: impl Into<Id>,
-        dst: impl Into<Id>,
-    ) -> Result<UdsSocket, UdsCommunicationError> {
-        let mut behav = IsoTpBehaviour::CAN_ISOTP_RX_PADDING;
-        behav.set(IsoTpBehaviour::CAN_ISOTP_TX_PADDING, true);
-
-        let tp_options =
-            IsoTpOptions::new(behav, Duration::from_secs(1), u8::MAX, 0x55, 0xAA, u8::MAX);
-
-        let mut behav = IsoTpBehaviour::CAN_ISOTP_RX_PADDING;
-        behav.set(IsoTpBehaviour::CAN_ISOTP_TX_PADDING, true);
-        let mut options = None;
-
-        match tp_options {
-            Ok(mut o) => {
-                o.set_flags(behav);
-                options = Some(o);
-            }
-            Err(_) => println!("Cannot set options!"),
+        match options {
+            Some(options) => Ok(UdsSocket {
+                isotp_socket: tokio_socketcan_isotp::IsoTpSocket::open_with_opts(
+                    ifname,
+                    src,
+                    dst,
+                    options.isotp_options,
+                    options.rx_flow_control_options,
+                    options.link_layer_options,
+                )?,
+            }),
+            None => Ok(UdsSocket {
+                isotp_socket: tokio_socketcan_isotp::IsoTpSocket::open(ifname, src, dst)?,
+            }),
         }
-        let uds_socket = UdsSocket::new_with_opts(ifname, src, dst, options, None, None)?;
-        Ok(uds_socket)
-    }
-
-    pub fn new_with_opts(
-        ifname: &str,
-        src: impl Into<Id>,
-        dst: impl Into<Id>,
-        isotp_options: Option<IsoTpOptions>,
-        rx_flow_control_options: Option<FlowControlOptions>,
-        link_layer_options: Option<LinkLayerOptions>,
-    ) -> Result<UdsSocket, UdsCommunicationError> {
-        Ok(UdsSocket {
-            isotp_socket: tokio_socketcan_isotp::IsoTpSocket::open_with_opts(
-                ifname,
-                src,
-                dst,
-                isotp_options,
-                rx_flow_control_options,
-                link_layer_options,
-            )?,
-        })
     }
 
     pub async fn send(&self, payload: &[u8]) -> Result<(), UdsCommunicationError> {
