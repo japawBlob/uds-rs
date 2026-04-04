@@ -5,6 +5,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Rust Semantic Versioning](https://doc.rust-lang.org/cargo/reference/semver.html).
 
 ## [Unreleased]
+### Added
+- Added `UdsSocketOptions::vw()` helper to build VW-specific ISO-TP options while keeping the main API generic.
+
+### Changed
+- **BREAKING**:`UdsClient::new` requires an explicit `UdsSocketOptions`
+
+### Removed
+- **BREAKING**: `new_vw` constructor; use `new` with `UdsSocketOptions::vw()` instead
 
 ## [0.2.1] - 2026-03-14
 ### Changed
