@@ -8,7 +8,7 @@ use uds_rs::{ResetType, UdsClient, UdsError, UdsSocketOptions};
 async fn main() -> Result<(), UdsError> {
     env_logger::init();
     // Create client
-    let socket_options = Some(UdsSocketOptions::vw()?);
+    let socket_options = UdsSocketOptions::vw()?;
     let c = UdsClient::new(
         "can0",
         StandardId::new(0x774).expect("Invalid src id"),

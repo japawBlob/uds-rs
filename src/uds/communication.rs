@@ -52,6 +52,12 @@ pub struct UdsSocketOptions {
 }
 
 impl UdsSocketOptions {
+    pub fn is_default(&self) -> bool {
+        self.isotp_options.is_none()
+            && self.rx_flow_control_options.is_none()
+            && self.link_layer_options.is_none()
+    }
+
     pub fn vw() -> Result<Self, UdsCommunicationError> {
         let mut initial_flags = IsoTpBehaviour::CAN_ISOTP_RX_PADDING;
         initial_flags.set(IsoTpBehaviour::CAN_ISOTP_TX_PADDING, true);
@@ -83,13 +89,17 @@ impl UdsSocket {
         ifname: &str,
         src: impl Into<Id>,
         dst: impl Into<Id>,
-        options: Option<UdsSocketOptions>,
+        options: UdsSocketOptions,
     ) -> Result<UdsSocket, UdsCommunicationError> {
         let src = src.into();
         let dst = dst.into();
 
-        match options {
-            Some(options) => Ok(UdsSocket {
+        if options.is_default() {
+            Ok(UdsSocket {
+                isotp_socket: tokio_socketcan_isotp::IsoTpSocket::open(ifname, src, dst)?,
+            })
+        } else {
+            Ok(UdsSocket {
                 isotp_socket: tokio_socketcan_isotp::IsoTpSocket::open_with_opts(
                     ifname,
                     src,
@@ -98,10 +108,7 @@ impl UdsSocket {
                     options.rx_flow_control_options,
                     options.link_layer_options,
                 )?,
-            }),
-            None => Ok(UdsSocket {
-                isotp_socket: tokio_socketcan_isotp::IsoTpSocket::open(ifname, src, dst)?,
-            }),
+            })
         }
     }
 

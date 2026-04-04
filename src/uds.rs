@@ -124,7 +124,7 @@ impl UdsClient {
         canifc: &str,
         src: impl Into<Id>,
         dst: impl Into<Id>,
-        options: Option<UdsSocketOptions>,
+        options: UdsSocketOptions,
     ) -> Result<UdsClient, UdsError> {
         Ok(UdsClient {
             socket: UdsSocket::new(canifc, src, dst, options)?,
