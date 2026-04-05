@@ -1,6 +1,6 @@
 [package]
 name = "uds-rs"
-version = "0.3.0"
+version = "0.3.1"
 edition = "2024"
 authors = [
     "Jakub Jíra <jakub.jira@protonmail.com>",
@@ -18,10 +18,10 @@ categories = ["network-programming", "os::linux-apis", "asynchronous"]
 maintenance = { status = "actively-developed" }
 
 [dev-dependencies]
-env_logger = "0.11.9"
+env_logger = "0.11"
 
 [dependencies]
-tokio = { version = "1.50", features = ["full"] }
+tokio = { version = "1.51", features = ["full"] }
 futures-util = "0.3"
 futures-timer = "3.0"
 futures = "0.3"
@@ -31,7 +31,7 @@ embedded-can = "0.4"
 libc = "0.2"
 nix = "0.31"
 thiserror = "2.0"
-mio = { version = "1.1", features = ["os-ext"] }
+mio = { version = "1.2", features = ["os-ext"] }
 num_enum = "0.7"
 log = "0.4"
-tokio-socketcan-isotp = "0.2.0"
+tokio-socketcan-isotp = "0.2"

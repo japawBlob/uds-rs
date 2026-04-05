@@ -115,23 +115,25 @@ impl From<communication::Error> for UdsError {
 }
 
 /// Main struct providing all API calls.
-pub struct UdsClient {
-    socket: UdsSocket,
+pub struct UdsClient<T: UdsTransport = UdsSocket> {
+    socket: T,
 }
 
-impl UdsClient {
+impl UdsClient<UdsSocket> {
     pub fn new(
         canifc: &str,
         src: impl Into<Id>,
         dst: impl Into<Id>,
         options: UdsSocketOptions,
-    ) -> Result<UdsClient, UdsError> {
+    ) -> Result<UdsClient<UdsSocket>, UdsError> {
         Ok(UdsClient {
             socket: UdsSocket::new(canifc, src, dst, options)?,
         })
     }
+}
 
-    pub fn new_from_socket(socket: UdsSocket) -> UdsClient {
+impl<T: UdsTransport> UdsClient<T> {
+    pub fn new_from_socket(socket: T) -> UdsClient<T> {
         UdsClient { socket }
     }
 
@@ -217,8 +219,59 @@ fn parse_for_error(raw_response: &[u8]) -> Result<(), UdsError> {
 
 #[cfg(test)]
 mod tests {
+    use std::collections::VecDeque;
+    use std::future::Future;
+    use std::sync::Mutex;
+
     use crate::uds::uds_definitions::NEGATIVE_RESPONSE_SID;
-    use crate::uds::{UdsError, parse_for_error};
+    use crate::uds::{
+        DataRecord, DiagnosticSessionControlResponse, EcuResetResponse, NegativeResponseCode,
+        ReadDataByIdentifierResponse, ResetType, UdsCommunicationError, UdsTransport, UdsError,
+        UdsResponse, parse_for_error,
+    };
+
+    use super::{DataFormat, UdsClient};
+
+    struct MockTransport {
+        sent_packets: Mutex<Vec<Vec<u8>>>,
+        responses: Mutex<VecDeque<Vec<u8>>>,
+    }
+
+    impl MockTransport {
+        fn new(responses: impl IntoIterator<Item = Vec<u8>>) -> Self {
+            Self {
+                sent_packets: Mutex::new(Vec::new()),
+                responses: Mutex::new(responses.into_iter().collect()),
+            }
+        }
+
+        fn sent_packets(&self) -> Vec<Vec<u8>> {
+            self.sent_packets.lock().unwrap().clone()
+        }
+    }
+
+    impl UdsTransport for MockTransport {
+        fn send(
+            &self,
+            payload: &[u8],
+        ) -> impl Future<Output = Result<(), UdsCommunicationError>> + Send {
+            let payload = payload.to_vec();
+            async move {
+                self.sent_packets.lock().unwrap().push(payload);
+                Ok(())
+            }
+        }
+
+        fn receive(&self) -> impl Future<Output = Result<Vec<u8>, UdsCommunicationError>> + Send {
+            async move {
+                self.responses
+                    .lock()
+                    .unwrap()
+                    .pop_front()
+                    .ok_or(UdsCommunicationError::GeneralError)
+            }
+        }
+    }
 
     #[test]
     fn test_parse_for_error_wrong_nrc() {
@@ -229,5 +282,187 @@ mod tests {
         };
         let result = parse_for_error(&raw_response);
         assert_eq!(Err(expected), result);
+    }
+
+    #[tokio::test]
+    async fn test_client_can_be_tested_with_mock_transport() {
+        let transport = MockTransport::new([vec![0x51, 0x03]]);
+        let client = UdsClient::new_from_socket(transport);
+
+        let result = client.ecu_reset(ResetType::SoftReset).await;
+
+        assert_eq!(
+            Ok(UdsResponse::EcuReset(DataFormat::Parsed(EcuResetResponse {
+                reset_type: ResetType::SoftReset,
+                power_down_time: None,
+            }))),
+            result
+        );
+        assert_eq!(vec![vec![0x11, 0x03]], client.socket.sent_packets());
+    }
+
+    #[tokio::test]
+    async fn test_busy_repeat_request_retries_send() {
+        let transport = MockTransport::new([
+            vec![
+                NEGATIVE_RESPONSE_SID,
+                0x11,
+                NegativeResponseCode::BusyRepeatRequest as u8,
+            ],
+            vec![0x51, 0x03],
+        ]);
+        let client = UdsClient::new_from_socket(transport);
+
+        let result = client.ecu_reset(ResetType::SoftReset).await;
+
+        assert_eq!(
+            Ok(UdsResponse::EcuReset(DataFormat::Parsed(EcuResetResponse {
+                reset_type: ResetType::SoftReset,
+                power_down_time: None,
+            }))),
+            result
+        );
+        assert_eq!(
+            vec![vec![0x11, 0x03], vec![0x11, 0x03]],
+            client.socket.sent_packets()
+        );
+    }
+
+    #[tokio::test]
+    async fn test_readme_style_read_data_by_identifier_vin_flow() {
+        let transport = MockTransport::new([b"\x62\xF1\x8AWVWZZZ1JZXW00001".to_vec()]);
+        let client = UdsClient::new_from_socket(transport);
+
+        let result = client.read_data_by_identifier(&[0xF18A]).await;
+
+        assert_eq!(
+            Ok(UdsResponse::ReadDataByIdentifier(DataFormat::Parsed(
+                ReadDataByIdentifierResponse {
+                    data_records: vec![DataRecord {
+                        data_identifier: 0xF18A,
+                        data: b"WVWZZZ1JZXW00001".to_vec(),
+                    }],
+                },
+            ))),
+            result
+        );
+        assert_eq!(vec![vec![0x22, 0xF1, 0x8A]], client.socket.sent_packets());
+    }
+
+    #[tokio::test]
+    async fn test_readme_style_clear_diagnostic_information_flow() {
+        let transport = MockTransport::new([vec![0x54]]);
+        let client = UdsClient::new_from_socket(transport);
+
+        let result = client.clear_diagnostic_information(0xFF_FF_FF).await;
+
+        assert_eq!(Ok(UdsResponse::ClearDiagnosticInformation), result);
+        assert_eq!(vec![vec![0x14, 0xFF, 0xFF, 0xFF]], client.socket.sent_packets());
+    }
+
+    #[tokio::test]
+    async fn test_diagnostic_session_control_extended_session_flow() {
+        let transport = MockTransport::new([vec![0x50, 0x03, 0x00, 0x32, 0x01, 0xF4]]);
+        let client = UdsClient::new_from_socket(transport);
+
+        let result = client.diagnostic_session_control(0x03).await;
+
+        assert_eq!(
+            Ok(UdsResponse::DiagnosticSessionControl(DataFormat::Parsed(
+                DiagnosticSessionControlResponse {
+                    session: 0x03,
+                    p2: 0x0032,
+                    p2_star: 0x01F4,
+                },
+            ))),
+            result
+        );
+        assert_eq!(vec![vec![0x10, 0x03]], client.socket.sent_packets());
+    }
+
+    #[test]
+    fn test_parse_for_error_positive_response_passthrough() {
+        assert_eq!(Ok(()), parse_for_error(&[0x50, 0x03]));
+    }
+
+    #[test]
+    fn test_parse_for_error_empty_response() {
+        assert_eq!(Err(UdsError::ResponseEmpty), parse_for_error(&[]));
+    }
+
+    #[test]
+    fn test_parse_for_error_negative_response_missing_sid() {
+        assert_eq!(Err(UdsError::ResponseEmpty), parse_for_error(&[NEGATIVE_RESPONSE_SID]));
+    }
+
+    #[test]
+    fn test_parse_for_error_negative_response_missing_nrc() {
+        assert_eq!(
+            Err(UdsError::ResponseEmpty),
+            parse_for_error(&[NEGATIVE_RESPONSE_SID, 0x10])
+        );
+    }
+
+    #[tokio::test]
+    async fn test_request_empty_is_rejected_before_transport_use() {
+        let transport = MockTransport::new(std::iter::empty::<Vec<u8>>());
+        let client = UdsClient::new_from_socket(transport);
+
+        let result = client.send_and_receive(&[]).await;
+
+        assert_eq!(Err(UdsError::RequestEmpty), result);
+        assert!(client.socket.sent_packets().is_empty());
+    }
+
+    #[tokio::test]
+    async fn test_negative_response_with_wrong_rejected_sid_returns_sid_mismatch() {
+        let transport = MockTransport::new([vec![
+            NEGATIVE_RESPONSE_SID,
+            0x22,
+            NegativeResponseCode::ConditionsNotCorrect as u8,
+        ]]);
+        let client = UdsClient::new_from_socket(transport);
+
+        let result = client.ecu_reset(ResetType::SoftReset).await;
+
+        assert_eq!(
+            Err(UdsError::SidMismatch {
+                expected: 0x11,
+                received: 0x22,
+                raw_message: vec![
+                    NEGATIVE_RESPONSE_SID,
+                    0x22,
+                    NegativeResponseCode::ConditionsNotCorrect as u8,
+                ],
+            }),
+            result
+        );
+    }
+
+    #[tokio::test]
+    async fn test_response_pending_waits_for_follow_up_response() {
+        let transport = MockTransport::new([
+            vec![
+                NEGATIVE_RESPONSE_SID,
+                0x10,
+                NegativeResponseCode::RequestCorrectlyReceivedResponsePending as u8,
+            ],
+            vec![0x50, 0x03, 0x00, 0x32, 0x01, 0xF4],
+        ]);
+        let client = UdsClient::new_from_socket(transport);
+
+        let result = client.diagnostic_session_control(0x03).await;
+
+        assert_eq!(
+            Ok(UdsResponse::DiagnosticSessionControl(DataFormat::Parsed(
+                DiagnosticSessionControlResponse {
+                    session: 0x03,
+                    p2: 0x0032,
+                    p2_star: 0x01F4,
+                },
+            ))),
+            result
+        );
+        assert_eq!(vec![vec![0x10, 0x03]], client.socket.sent_packets());
     }
 }

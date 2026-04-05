@@ -7,6 +7,7 @@
 
 use crate::DataFormat;
 use crate::uds::uds_definitions::SEND_RECEIVE_SID_OFFSET;
+use crate::uds::UdsTransport;
 use crate::uds::{EcuResponseResult, UdsClient, UdsError, UdsResponse};
 
 const WRITE_DATA_BY_IDENTIFIER_SID: u8 = 0x2E;
@@ -15,7 +16,7 @@ const WRITE_DATA_BY_IDENTIFIER_SID: u8 = 0x2E;
 pub struct WriteDataByIdentifierResponse {
     pub data_identifier: u16,
 }
-impl UdsClient {
+impl<T: UdsTransport> UdsClient<T> {
     pub async fn write_data_by_identifier(
         &self,
         data_identifier: u16,
@@ -59,4 +60,44 @@ fn parse_write_data_by_identifier_response(raw_response: &[u8]) -> EcuResponseRe
             data_identifier,
         }));
     Ok(response)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_compose_write_vin_did_request() {
+        let result = compose_write_data_by_identifier_request(0xF190, b"TESTVIN123456789");
+        let expected = [
+            vec![WRITE_DATA_BY_IDENTIFIER_SID, 0xF1, 0x90],
+            b"TESTVIN123456789".to_vec(),
+        ]
+        .concat();
+        assert_eq!(expected, result);
+    }
+
+    #[test]
+    fn test_parse_positive_response() {
+        let raw_response = vec![0x6E, 0xF1, 0x90];
+        let result = parse_write_data_by_identifier_response(&raw_response);
+        assert_eq!(
+            Ok(UdsResponse::WriteDataByIdentifier(DataFormat::Parsed(
+                WriteDataByIdentifierResponse {
+                    data_identifier: 0xF190,
+                },
+            ))),
+            result
+        );
+    }
+
+    #[test]
+    fn test_parse_response_too_short() {
+        let raw_response = vec![0x6E, 0xF1];
+        let result = parse_write_data_by_identifier_response(&raw_response);
+        assert_eq!(
+            Err(UdsError::InvalidLength { raw_message: raw_response }),
+            result
+        );
+    }
 }

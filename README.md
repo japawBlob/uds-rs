@@ -4,6 +4,7 @@
 [![VERSION](https://img.shields.io/crates/v/uds-rs.svg)](https://crates.io/crates/uds-rs)
 [![Docs.rs](https://docs.rs/uds-rs/badge.svg)](https://docs.rs/uds-rs/)
 [![CI Status](https://github.com/japawBlob/uds-rs/workflows/CI/badge.svg)](https://github.com/japawBlob/uds-rs/actions)
+[![Coverage](https://img.shields.io/badge/coverage-%E2%89%A580%25-brightgreen.svg)](https://github.com/japawBlob/uds-rs/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 

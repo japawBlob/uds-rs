@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Rust Semantic Versioning](https://doc.rust-lang.org/cargo/reference/semver.html).
 
 ## [Unreleased]
+### Changed 
+- Testability of code
+- Bumped dependencies
+
 ### Added
 - Added `UdsSocketOptions::vw()` helper to build VW-specific ISO-TP options while keeping the main API generic.
 

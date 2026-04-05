@@ -19,7 +19,7 @@ pub struct ReadMemoryByAddressResponse {
     pub data_record: Vec<u8>,
 }
 
-impl UdsClient {
+impl<T: UdsTransport> UdsClient<T> {
     /// address_and_memory_length_format_identifier (explained in ISOTP table 152)
     /// is two values encoded in single message - could be split into two separate
     /// values mem_length and address_length. Or create wrapper, that would take two parameters.
@@ -376,5 +376,19 @@ mod tests {
             }));
         let result = parse_response(&data);
         assert_eq!(result, Ok(expected));
+    }
+
+    #[test]
+    fn test_parse_response_sid_mismatch() {
+        let data = vec![0x7F, 1, 2, 3];
+        let result = parse_response(&data);
+        assert_eq!(
+            Err(UdsError::SidMismatch {
+                expected: READ_MEMORY_BY_ADDRESS_SID + SEND_RECEIVE_SID_OFFSET,
+                received: 0x7F,
+                raw_message: data,
+            }),
+            result
+        );
     }
 }

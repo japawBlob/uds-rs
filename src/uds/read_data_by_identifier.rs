@@ -34,7 +34,7 @@ pub struct DataRecord {
     pub data: Vec<u8>,
 }
 
-impl UdsClient {
+impl<T: UdsTransport> UdsClient<T> {
     pub async fn read_data_by_identifier(&self, data_identifiers: &[u16]) -> EcuResponseResult {
         if data_identifiers.len() == 1 {
             return self

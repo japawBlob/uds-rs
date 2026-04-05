@@ -90,7 +90,7 @@ enum DTCFormat {
     SAE_J2012_DA_4 = 0x04,
 }
 
-impl UdsClient {
+impl<T: UdsTransport> UdsClient<T> {
     /// 0x01
     pub async fn report_number_of_dtc_by_status_mask(
         &self,
@@ -600,6 +600,25 @@ mod tests {
     }
 
     #[test]
+    fn test_parse_response_0x01_invalid_report_type() {
+        let raw_response = vec![0x59, 0x02, 0x18, 0x01, 0x10, 0x0F];
+        let result = parse_report_number_of_dtc_by_status_mask_response(&raw_response);
+        assert_eq!(Err(UdsError::InvalidArgument), result);
+    }
+
+    #[test]
+    fn test_parse_response_0x01_invalid_dtc_format() {
+        let raw_response = vec![0x59, 0x01, 0x18, 0xFF, 0x10, 0x0F];
+        let result = parse_report_number_of_dtc_by_status_mask_response(&raw_response);
+        assert_eq!(
+            Err(UdsError::ResponseIncorrect {
+                raw_message: raw_response,
+            }),
+            result
+        );
+    }
+
+    #[test]
     fn test_compose_request_0x02() {
         let sub_function = SubFunction::try_from(0x2).unwrap();
         let dtc_status_mask = 0x0;
@@ -673,6 +692,25 @@ mod tests {
     }
 
     #[test]
+    fn test_parse_response_0x02_invalid_report_type() {
+        let raw_response = vec![0x59, 0x01, 0xFF];
+        let result = parse_report_dtcs(&raw_response);
+        assert_eq!(Err(UdsError::InvalidArgument), result);
+    }
+
+    #[test]
+    fn test_parse_response_0x02_invalid_record_length() {
+        let raw_response = vec![0x59, 0x02, 0xFF, 0x12, 0x34, 0x56];
+        let result = parse_report_dtcs(&raw_response);
+        assert_eq!(
+            Err(UdsError::InvalidLength {
+                raw_message: raw_response,
+            }),
+            result
+        );
+    }
+
+    #[test]
     fn test_compose_request_iso_0x04() {
         let sid = READ_DTC_INFORMATION_SID;
         let sub_function = SubFunction::try_from(0x4).unwrap();
@@ -700,6 +738,18 @@ mod tests {
         let raw_response = vec![];
         let result = parse_report_dtc_snapshot_record_by_dtc_number_response(&raw_response);
         assert_eq!(Err(UdsError::ResponseEmpty), result);
+    }
+
+    #[test]
+    fn test_parse_response_0x04_positive_raw_payload() {
+        let raw_response = vec![0x59, 0x04, 0x12, 0x34, 0x56, 0xFF];
+        let result = parse_report_dtc_snapshot_record_by_dtc_number_response(&raw_response);
+        assert_eq!(
+            Ok(UdsResponse::ReadDTCInformation(DataFormat::Raw(vec![
+                0x04, 0x12, 0x34, 0x56, 0xFF,
+            ]))),
+            result
+        );
     }
 
     #[test]
@@ -732,6 +782,19 @@ mod tests {
         assert_eq!(Err(UdsError::ResponseEmpty), result);
     }
 
+    #[test]
+    fn test_parse_response_0x06_positive_raw_payload() {
+        let raw_response = vec![0x59, 0x06, 0x12, 0x34, 0x56, 0x01, 0xAA];
+        let result = parse_report_dtc_ext_data_by_dtc_number_response(&raw_response);
+        assert_eq!(
+            Ok(UdsResponse::ReadDTCInformation(DataFormat::Raw(vec![
+                0x06, 0x12, 0x34, 0x56, 0x01, 0xAA,
+            ]))),
+            result
+        );
+    }
+
+    #[test]
     fn test_compose_request_0x0e() {
         let sid = READ_DTC_INFORMATION_SID;
         let subfunction = SubFunction::try_from(0x0e).unwrap();
