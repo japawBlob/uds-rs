@@ -120,7 +120,6 @@ impl UdsSocket {
             })
         }
     }
-
 }
 
 impl UdsTransport for UdsSocket {

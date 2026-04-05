@@ -101,7 +101,9 @@ mod tests {
         let raw_response = vec![0x50, 0x03, 0x00];
         let result = parse_diagnostic_session_control_response(&raw_response);
         assert_eq!(
-            Err(UdsError::InvalidLength { raw_message: raw_response }),
+            Err(UdsError::InvalidLength {
+                raw_message: raw_response
+            }),
             result
         );
     }

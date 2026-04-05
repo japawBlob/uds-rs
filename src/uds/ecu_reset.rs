@@ -84,10 +84,12 @@ mod tests {
         let raw_response = vec![0x51, 0x04, 0x0A];
         let result = parse_ecu_reset_response(&raw_response);
         assert_eq!(
-            Ok(UdsResponse::EcuReset(DataFormat::Parsed(EcuResetResponse {
-                reset_type: ResetType::EnableRapidPowerShutDown,
-                power_down_time: Some(0x0A),
-            }))),
+            Ok(UdsResponse::EcuReset(DataFormat::Parsed(
+                EcuResetResponse {
+                    reset_type: ResetType::EnableRapidPowerShutDown,
+                    power_down_time: Some(0x0A),
+                }
+            ))),
             result
         );
     }

@@ -226,8 +226,8 @@ mod tests {
     use crate::uds::uds_definitions::NEGATIVE_RESPONSE_SID;
     use crate::uds::{
         DataRecord, DiagnosticSessionControlResponse, EcuResetResponse, NegativeResponseCode,
-        ReadDataByIdentifierResponse, ResetType, UdsCommunicationError, UdsTransport, UdsError,
-        UdsResponse, parse_for_error,
+        ReadDataByIdentifierResponse, ResetType, UdsCommunicationError, UdsError, UdsResponse,
+        UdsTransport, parse_for_error,
     };
 
     use super::{DataFormat, UdsClient};
@@ -292,10 +292,12 @@ mod tests {
         let result = client.ecu_reset(ResetType::SoftReset).await;
 
         assert_eq!(
-            Ok(UdsResponse::EcuReset(DataFormat::Parsed(EcuResetResponse {
-                reset_type: ResetType::SoftReset,
-                power_down_time: None,
-            }))),
+            Ok(UdsResponse::EcuReset(DataFormat::Parsed(
+                EcuResetResponse {
+                    reset_type: ResetType::SoftReset,
+                    power_down_time: None,
+                }
+            ))),
             result
         );
         assert_eq!(vec![vec![0x11, 0x03]], client.socket.sent_packets());
@@ -316,10 +318,12 @@ mod tests {
         let result = client.ecu_reset(ResetType::SoftReset).await;
 
         assert_eq!(
-            Ok(UdsResponse::EcuReset(DataFormat::Parsed(EcuResetResponse {
-                reset_type: ResetType::SoftReset,
-                power_down_time: None,
-            }))),
+            Ok(UdsResponse::EcuReset(DataFormat::Parsed(
+                EcuResetResponse {
+                    reset_type: ResetType::SoftReset,
+                    power_down_time: None,
+                }
+            ))),
             result
         );
         assert_eq!(
@@ -357,7 +361,10 @@ mod tests {
         let result = client.clear_diagnostic_information(0xFF_FF_FF).await;
 
         assert_eq!(Ok(UdsResponse::ClearDiagnosticInformation), result);
-        assert_eq!(vec![vec![0x14, 0xFF, 0xFF, 0xFF]], client.socket.sent_packets());
+        assert_eq!(
+            vec![vec![0x14, 0xFF, 0xFF, 0xFF]],
+            client.socket.sent_packets()
+        );
     }
 
     #[tokio::test]
@@ -392,7 +399,10 @@ mod tests {
 
     #[test]
     fn test_parse_for_error_negative_response_missing_sid() {
-        assert_eq!(Err(UdsError::ResponseEmpty), parse_for_error(&[NEGATIVE_RESPONSE_SID]));
+        assert_eq!(
+            Err(UdsError::ResponseEmpty),
+            parse_for_error(&[NEGATIVE_RESPONSE_SID])
+        );
     }
 
     #[test]

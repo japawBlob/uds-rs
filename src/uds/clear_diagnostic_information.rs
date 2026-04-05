@@ -4,8 +4,8 @@
 //!
 //! [UdsClient::clear_diagnostic_information]
 //!
-use crate::uds::uds_definitions::SEND_RECEIVE_SID_OFFSET;
 use crate::uds::UdsTransport;
+use crate::uds::uds_definitions::SEND_RECEIVE_SID_OFFSET;
 use crate::uds::{EcuResponseResult, UdsClient, UdsError, UdsResponse};
 use log::error;
 
@@ -50,7 +50,10 @@ mod tests {
     #[test]
     fn test_compose_clear_all_dtcs_request() {
         let result = compose_clear_diagnostic_information_request(0xFF_FF_FF);
-        assert_eq!(vec![CLEAR_DIAGNOSTIC_INFORMATION_SID, 0xFF, 0xFF, 0xFF], result);
+        assert_eq!(
+            vec![CLEAR_DIAGNOSTIC_INFORMATION_SID, 0xFF, 0xFF, 0xFF],
+            result
+        );
     }
 
     #[test]

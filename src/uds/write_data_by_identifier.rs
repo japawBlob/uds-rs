@@ -6,8 +6,8 @@
 //!
 
 use crate::DataFormat;
-use crate::uds::uds_definitions::SEND_RECEIVE_SID_OFFSET;
 use crate::uds::UdsTransport;
+use crate::uds::uds_definitions::SEND_RECEIVE_SID_OFFSET;
 use crate::uds::{EcuResponseResult, UdsClient, UdsError, UdsResponse};
 
 const WRITE_DATA_BY_IDENTIFIER_SID: u8 = 0x2E;
@@ -96,7 +96,9 @@ mod tests {
         let raw_response = vec![0x6E, 0xF1];
         let result = parse_write_data_by_identifier_response(&raw_response);
         assert_eq!(
-            Err(UdsError::InvalidLength { raw_message: raw_response }),
+            Err(UdsError::InvalidLength {
+                raw_message: raw_response
+            }),
             result
         );
     }
