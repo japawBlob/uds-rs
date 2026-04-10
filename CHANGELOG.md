@@ -9,6 +9,7 @@ and this project adheres to [Rust Semantic Versioning](https://doc.rust-lang.org
 - Testability of code
 - Bumped dependencies
 
+## [0.3.0] - 2026-04-10
 ### Added
 - Added `UdsSocketOptions::vw()` helper to build VW-specific ISO-TP options while keeping the main API generic.
 
