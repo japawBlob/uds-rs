@@ -124,19 +124,10 @@ impl UdsClient {
         canifc: &str,
         src: impl Into<Id>,
         dst: impl Into<Id>,
+        options: UdsSocketOptions,
     ) -> Result<UdsClient, UdsError> {
         Ok(UdsClient {
-            socket: UdsSocket::new(canifc, src, dst)?,
-        })
-    }
-
-    pub fn new_vw(
-        canifc: &str,
-        src: impl Into<Id>,
-        dst: impl Into<Id>,
-    ) -> Result<UdsClient, UdsError> {
-        Ok(UdsClient {
-            socket: UdsSocket::new_vw(canifc, src, dst)?,
+            socket: UdsSocket::new(canifc, src, dst, options)?,
         })
     }
 

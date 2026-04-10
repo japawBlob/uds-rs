@@ -2,16 +2,18 @@
 
 use embedded_can::StandardId;
 use log::{error, info};
-use uds_rs::{ResetType, UdsClient, UdsError};
+use uds_rs::{ResetType, UdsClient, UdsError, UdsSocketOptions};
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<(), UdsError> {
     env_logger::init();
     // Create client
+    let socket_options = UdsSocketOptions::vw()?;
     let c = UdsClient::new(
         "can0",
         StandardId::new(0x774).expect("Invalid src id"),
         StandardId::new(0x70A).expect("Invalid dst id"),
+        socket_options,
     )?;
 
     // read data by identifier (ecu VIN)

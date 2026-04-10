@@ -22,16 +22,17 @@
 //!
 //! use embedded_can::StandardId;
 //! use log::{error, info};
-//! use uds_rs::{UdsClient, UdsError, ResetType};
+//! use uds_rs::{ResetType, UdsClient, UdsError, UdsSocketOptions};
 //!
 //! #[tokio::main(flavor = "current_thread")]
 //! async fn main() -> Result<(), UdsError> {
 //!     env_logger::init();
-//!     // Create client
+//!     // Create client wtih default options
 //!     let c = UdsClient::new(
 //!         "can0",
 //!         StandardId::new(0x774).expect("Invalid src id"),
 //!         StandardId::new(0x70A).expect("Invalid dst id"),
+//!         UdsSocketOptions::default(),
 //!     )?;
 //!
 //!     // read data by identifier (ecu VIN)
@@ -68,6 +69,34 @@
 //!     Ok(())
 //! }
 //! ```
+//!
+//! ### Example with specific ISO-TP configuration
+//!
+//! ```no_run
+//! // To run the example make sure to set-up a CAN interface first!
+//!
+//! use embedded_can::StandardId;
+//! use log::{error, info};
+//! use uds_rs::{ResetType, UdsClient, UdsError, UdsSocketOptions};
+//!
+//!
+//! #[tokio::main(flavor = "current_thread")]
+//! async fn main() -> Result<(), UdsError> {
+//!     env_logger::init();
+//!     // Create client with VW specific options
+//!     let socket_options = UdsSocketOptions::vw()?;
+//!     let c = UdsClient::new(
+//!         "can0",
+//!         StandardId::new(0x774).expect("Invalid src id"),
+//!         StandardId::new(0x70A).expect("Invalid dst id"),
+//!         socket_options,
+//!     )?;
+//!
+//!     Ok(())
+//!
+//! }
+//! ```
+//!
 //! # Notes for development
 //! ## Communication architecture
 //! Current communication architecture is strictly bounded request-response together. It would be
