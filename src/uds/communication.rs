@@ -40,6 +40,15 @@ impl From<std::io::Error> for UdsCommunicationError {
     }
 }
 
+pub trait UdsTransport {
+    fn send(
+        &self,
+        payload: &[u8],
+    ) -> impl Future<Output = Result<(), UdsCommunicationError>> + Send;
+
+    fn receive(&self) -> impl Future<Output = Result<Vec<u8>, UdsCommunicationError>> + Send;
+}
+
 pub struct UdsSocket {
     isotp_socket: tokio_socketcan_isotp::IsoTpSocket,
 }
@@ -111,11 +120,14 @@ impl UdsSocket {
             })
         }
     }
+}
 
-    pub async fn send(&self, payload: &[u8]) -> Result<(), UdsCommunicationError> {
+impl UdsTransport for UdsSocket {
+    async fn send(&self, payload: &[u8]) -> Result<(), UdsCommunicationError> {
         Ok(self.isotp_socket.write_packet(payload).await?)
     }
-    pub async fn receive(&self) -> Result<Vec<u8>, UdsCommunicationError> {
+
+    async fn receive(&self) -> Result<Vec<u8>, UdsCommunicationError> {
         Ok(self.isotp_socket.read_packet().await?)
     }
 }

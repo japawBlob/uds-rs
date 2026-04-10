@@ -5,7 +5,7 @@
 //! [UdsClient::diagnostic_session_control]
 //!
 use crate::uds::uds_definitions::SEND_RECEIVE_SID_OFFSET;
-use crate::uds::{EcuResponseResult, UdsClient, UdsError, UdsResponse};
+use crate::uds::{EcuResponseResult, UdsClient, UdsError, UdsResponse, UdsTransport};
 use log::error;
 
 use super::DataFormat;
@@ -19,7 +19,7 @@ pub struct DiagnosticSessionControlResponse {
     pub p2_star: u16,
 }
 
-impl UdsClient {
+impl<T: UdsTransport> UdsClient<T> {
     pub async fn diagnostic_session_control(&self, session_id: u8) -> EcuResponseResult {
         let request = compose_diagnostic_session_control_request(session_id);
         let raw_response = self.send_and_receive(&request).await?;
@@ -68,4 +68,43 @@ fn parse_diagnostic_session_control_response(raw_response: &[u8]) -> EcuResponse
         },
     ));
     Ok(result)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_compose_extended_diagnostic_session_request() {
+        let result = compose_diagnostic_session_control_request(0x03);
+        assert_eq!(vec![DIAGNOSTIC_SESSION_CONTROL_SID, 0x03], result);
+    }
+
+    #[test]
+    fn test_parse_positive_response_with_timing_parameters() {
+        let raw_response = vec![0x50, 0x03, 0x00, 0x32, 0x01, 0xF4];
+        let result = parse_diagnostic_session_control_response(&raw_response);
+        assert_eq!(
+            Ok(UdsResponse::DiagnosticSessionControl(DataFormat::Parsed(
+                DiagnosticSessionControlResponse {
+                    session: 0x03,
+                    p2: 0x0032,
+                    p2_star: 0x01F4,
+                },
+            ))),
+            result
+        );
+    }
+
+    #[test]
+    fn test_parse_invalid_length() {
+        let raw_response = vec![0x50, 0x03, 0x00];
+        let result = parse_diagnostic_session_control_response(&raw_response);
+        assert_eq!(
+            Err(UdsError::InvalidLength {
+                raw_message: raw_response
+            }),
+            result
+        );
+    }
 }

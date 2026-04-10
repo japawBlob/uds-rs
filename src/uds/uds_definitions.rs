@@ -95,3 +95,34 @@ pub enum NegativeResponseCode {
     VoltageTooHigh = 0x92,
     VoltageTooLow = 0x93,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_to_received_sid() {
+        assert_eq!(0x62, to_received_sid(0x22));
+    }
+
+    #[test]
+    fn test_from_received_sid() {
+        assert_eq!(0x22, from_received_sid(0x62));
+    }
+
+    #[test]
+    fn test_service_identifier_try_from() {
+        assert_eq!(
+            Ok(ServiceIdentifier::ReadDataByIdentifier),
+            ServiceIdentifier::try_from(0x22)
+        );
+    }
+
+    #[test]
+    fn test_negative_response_code_try_from() {
+        assert_eq!(
+            Ok(NegativeResponseCode::RequestCorrectlyReceivedResponsePending),
+            NegativeResponseCode::try_from(0x78)
+        );
+    }
+}
