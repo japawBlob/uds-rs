@@ -14,7 +14,7 @@ jobs:
   build-test-docs:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Install stable toolchain
         run: rustup update stable && rustup default stable
       - name: Check formatting
