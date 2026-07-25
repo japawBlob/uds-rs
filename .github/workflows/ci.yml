@@ -8,13 +8,14 @@ on:
       - main
   schedule:
     - cron: '14 3 1 * *' 
+  workflow_dispatch:
 env:
   CARGO_TERM_COLOR: always
 jobs:
   build-test-docs:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Install stable toolchain
         run: rustup update stable && rustup default stable
       - name: Check formatting
